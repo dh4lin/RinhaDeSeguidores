@@ -57,27 +57,36 @@ async function fetchInstagramAvatar(username: string): Promise<{ data: ArrayBuff
     }
   } catch {}
 
-  // ✅ Strategy 3: foto local
+  // Strategy 3: foto local
+try {
+  const photoDir = path.join(
+    process.cwd(),
+    "app",
+    "api",
+    "avatar",
+    "photo"
+  )
+
+  // tenta primeiro com username original
+  let photoPath = path.join(photoDir, `${username}.webp`)
+
   try {
-    const photoPath = path.join(
-      process.cwd(),
-      "RinhaDeSeguidores",
-      "app",
-      "api",
-      "avatar",
-      "photo",
-      `${username}.webp`
-    )
-
-    const file = await fs.readFile(photoPath)
-
-    return {
-      data: file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength),
-      contentType: "image/webp",
-    }
+    await fs.access(photoPath)
   } catch {
-    // não achou arquivo local
+    // tenta versão lowercase
+    photoPath = path.join(photoDir, `${username.toLowerCase()}.webp`)
   }
+
+  const file = await fs.readFile(photoPath)
+
+  return {
+    data: file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength),
+    contentType: "image/webp",
+  }
+} catch (e) {
+  console.log("Foto local não encontrada:", username)
+}
+
 
   return null
 }
